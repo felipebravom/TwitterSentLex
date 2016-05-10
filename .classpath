@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/ark-tweet-nlp-0.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/langdetect.jar"/>
+	<classpathentry kind="lib" path="lib/jsonic-1.2.7.jar"/>
+	<classpathentry kind="lib" path="lib/fastutil-6.6.3.jar" sourcepath="/Users/admin/.m2/repository/it/unimi/dsi/fastutil/6.6.3/fastutil-6.6.3-sources.jar"/>
+	<classpathentry kind="lib" path="lib/liblinear-1.92.jar"/>
+	<classpathentry kind="lib" path="lib/LibLINEAR.jar"/>
+	<classpathentry kind="lib" path="lib/weka.jar" sourcepath="/Users/admin/weka-3-6-10/weka-src.jar"/>
+	<classpathentry kind="lib" path="lib/meka-1.7.6.jar" sourcepath="/Users/admin/.m2/repository/net/sf/meka/meka/1.7.6/meka-1.7.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/mst.jar"/>
+	<classpathentry kind="lib" path="lib/mallet.jar"/>
+	<classpathentry kind="lib" path="lib/trove-2.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/SentiStrength.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

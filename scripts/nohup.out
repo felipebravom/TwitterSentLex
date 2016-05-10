@@ -1,0 +1,4 @@
+['word2VecToArff.py', '/Users/admin/workspace/word2vec/wikichile.bin', 'lala.csv']
+/Users/admin/workspace/word2vec/wikichile.bin lala.csv
+['word2VecToArff.py', '/Users/admin/workspace/word2vec/text8.bin', 'dic.csv']
+/Users/admin/workspace/word2vec/text8.bin dic.csv

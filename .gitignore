@@ -1,0 +1,8 @@
+*.class
+*.arff
+resources/*
+*.csv
+*.bin
+extra_data/*
+profiles/*
+glove.twitter.27B.200d.txt.gz
