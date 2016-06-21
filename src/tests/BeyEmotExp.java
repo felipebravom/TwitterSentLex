@@ -8,12 +8,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Random;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.LibLINEAR;
 import weka.classifiers.meta.FilteredClassifier;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Option;
 import weka.core.Utils;
@@ -79,7 +81,6 @@ public class BeyEmotExp {
 
 	// Use a classifier trained from word-label for classifying tweets 
 
-
 	public void evaluateDataSet(Instances trainData,String path, DistantSupervisionFilter distantFilt) throws Exception{
 		Instances targetData=this.mapTargetData(path,distantFilt);
 
@@ -96,6 +97,9 @@ public class BeyEmotExp {
 		fc.setClassifier(ll);
 		fc.buildClassifier(trainData);
 
+		
+	
+		
 		// 
 		Evaluation targetEval = new weka.classifiers.Evaluation(trainData);
 
@@ -128,6 +132,85 @@ public class BeyEmotExp {
 	}
 
 
+	
+
+	public void reportClassifications(Instances trainData,String path, DistantSupervisionFilter distantFilt) throws Exception{
+		
+		
+		BufferedReader readerTest = new BufferedReader(
+				new FileReader(path));
+
+		Instances targetCorpus = new Instances(readerTest);
+		
+		
+		Instances targetData=this.mapTargetData(path,distantFilt);
+
+
+		LibLINEAR ll=new LibLINEAR();
+		ll.setOptions(Utils.splitOptions("-S 7 -C 1.0 -E 0.01 -B 1.0 -P"));
+
+		RemoveType rm=new RemoveType();
+
+		rm.setOptions(Utils.splitOptions("-T String"));
+
+		FilteredClassifier fc = new FilteredClassifier();
+		fc.setFilter(rm);
+		fc.setClassifier(ll);
+		fc.buildClassifier(trainData);
+
+		Iterator<Instance> targetCorpusIterator=targetCorpus.iterator();
+		Iterator<Instance> targetDataIterator=targetData.iterator();
+		
+		
+		
+		System.out.println("content\tclass\tpos\tneg");
+		
+		while(targetCorpusIterator.hasNext() && targetDataIterator.hasNext()){
+			Instance targetCorpusInstance=targetCorpusIterator.next();
+			Instance targetDataInstance=targetDataIterator.next();
+			
+			double preds[]=fc.distributionForInstance(targetDataInstance);
+				
+			
+			System.out.println(targetCorpusInstance.stringValue(0)+"\t"+targetCorpus.attribute("Class").value((int)targetCorpusInstance.value(1))+
+					"\t"+preds[0]+"\t"+preds[1]);
+			
+		}
+	
+		
+		
+		
+
+		//		System.out.println(targetEval.toSummaryString());	
+		//		System.out.println(targetEval.toMatrixString("Confusion Matrix"));
+		//		System.out.println(targetEval.toClassDetailsString());
+		//		
+
+
+
+
+		//
+		//		fc.buildClassifier(targetData);
+		//		weka.classifiers.Evaluation targetEval2 = new weka.classifiers.Evaluation(targetData);
+		//		System.out.println("Cross-Validation on Target Data Results"+path);
+		//		targetEval2.crossValidateModel(fc, targetData, 10, new Random(1));
+		//		System.out.println(targetEval2.toSummaryString());
+		//		System.out.println(targetEval2.toMatrixString("Confusion Matrix"));
+		//		System.out.println(targetEval2.toClassDetailsString());
+
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public Object2ObjectMap<String,double[]> evaluateModels(Instances trainData,String path, DistantSupervisionFilter distantFilt,int folds) throws Exception{
 
 
@@ -241,52 +324,57 @@ public class BeyEmotExp {
 //		System.out.println("DistFilt Tweets per Centroid "+distFiltEx.getTweetsPerCentroid());
 
 		Instances trainDistData=Filter.useFilter(sourceData, distFiltEx);
-//		trainDistData.setClassIndex(trainDistData.numAttributes()-1);
+		trainDistData.setClassIndex(trainDistData.numAttributes()-1);
 //
 //
 //
-//		System.out.println(distFiltEx.getUsefulInfo());
-//		System.out.println("Dist Model Attributes,"+ trainDistData.numAttributes());
-//		System.out.println("Dist ModelInstances,"+ trainDistData.numInstances());
+		System.out.println(distFiltEx.getUsefulInfo());
+		System.out.println("Dist Model Attributes,"+ trainDistData.numAttributes());
+		System.out.println("Dist ModelInstances,"+ trainDistData.numInstances());
 //		this.evaluateDataSet(trainDistData, "testTweets/6HumanPosNeg.arff", distFiltEx);
 //		this.evaluateDataSet(trainDistData, "testTweets/SandersPosNeg.arff", distFiltEx);
 //		this.evaluateDataSet(trainDistData, "testTweets/SemEvalPosNeg.arff", distFiltEx);
+//		
+		
+		this.reportClassifications(trainDistData, "testTweets/SemEvalPosNeg.arff", distFiltEx);
 		
 		
-		System.out.println("");
-		
-
-		int[] tweetsPerCentroids={20};
-		double[] fracsGenerate={0.2};
 		
 		
-		for (int centSize:tweetsPerCentroids){
-			distFiltEx.setTweetsPerCentroid(centSize);	
-			
-			for (double fracGen:fracsGenerate){
-				System.out.println("DistFilt Tweets per Centroid "+distFiltEx.getTweetsPerCentroid()+" Frac Generate "+fracGen);
-
-
-				trainDistData= distFiltEx.generateData( fracGen*sourceData.numInstances());
-				trainDistData.setClassIndex(trainDistData.numAttributes()-1);
-
-
-
-				System.out.println(distFiltEx.getUsefulInfo());
-				System.out.println("Dist Model Attributes,"+ trainDistData.numAttributes());
-				System.out.println("Dist ModelInstances,"+ trainDistData.numInstances());
-				this.evaluateDataSet(trainDistData, "testTweets/6HumanPosNeg.arff", distFiltEx);
-				this.evaluateDataSet(trainDistData, "testTweets/SandersPosNeg.arff", distFiltEx);
-				this.evaluateDataSet(trainDistData, "testTweets/SemEvalPosNeg.arff", distFiltEx);
-
-
-				System.out.println("");
-				
-			}
-			
-
-		}
-		
+//		System.out.println("");
+//		
+//
+//		int[] tweetsPerCentroids={20};
+//		double[] fracsGenerate={0.2};
+//		
+//		
+//		for (int centSize:tweetsPerCentroids){
+//			distFiltEx.setTweetsPerCentroid(centSize);	
+//			
+//			for (double fracGen:fracsGenerate){
+//				System.out.println("DistFilt Tweets per Centroid "+distFiltEx.getTweetsPerCentroid()+" Frac Generate "+fracGen);
+//
+//
+//				trainDistData= distFiltEx.generateData( fracGen*sourceData.numInstances());
+//				trainDistData.setClassIndex(trainDistData.numAttributes()-1);
+//
+//
+//
+//				System.out.println(distFiltEx.getUsefulInfo());
+//				System.out.println("Dist Model Attributes,"+ trainDistData.numAttributes());
+//				System.out.println("Dist ModelInstances,"+ trainDistData.numInstances());
+//				this.evaluateDataSet(trainDistData, "testTweets/6HumanPosNeg.arff", distFiltEx);
+//				this.evaluateDataSet(trainDistData, "testTweets/SandersPosNeg.arff", distFiltEx);
+//				this.evaluateDataSet(trainDistData, "testTweets/SemEvalPosNeg.arff", distFiltEx);
+//
+//
+//				System.out.println("");
+//				
+//			}
+//			
+//
+//		}
+//		
 			
 		
 		
@@ -320,9 +408,9 @@ public class BeyEmotExp {
 		// mutually exclusive false			
 //		distFiltEx.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -E -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O -A 10 -B "+centNum));
 
-//		ASA distFiltNonEx=new ASA();		
-//		// Non mutually exclusive false			
-//		distFiltNonEx.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O -A 10 -B "+centNum));
+		ASA distFiltNonEx=new ASA();		
+		// Non mutually exclusive false			
+		distFiltNonEx.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O -A 10 -B "+centNum));
 
 
 		
@@ -358,8 +446,8 @@ public class BeyEmotExp {
 		// train data with distant model
 
 //
-//		System.out.println("Exclusive Sets");
-//		wlf.processDistFilt(sourceData, distFiltNonEx);
+		
+		wlf.processDistFilt(sourceData, distFiltNonEx);
 
 //		Uncomment this for NonExclusive Results
 //		
@@ -368,51 +456,51 @@ public class BeyEmotExp {
 
 
 		
-		LexiconDistSuper lexFilt=new LexiconDistSuper();		
-//		// Non mutually exclusive false			
-		lexFilt.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O"));
-
-		lexFilt.setBalance(false);
-		
-		System.out.println("Lexicon UnBalanced");
-		lexFilt.setInputFormat(sourceData);
-		Instances trainLexData=Filter.useFilter(sourceData, lexFilt);
-		trainLexData.setClassIndex(trainLexData.numAttributes()-1);
-
-
-
-		System.out.println(lexFilt.getUsefulInfo());
-		System.out.println("Lex Corpus Attributes,"+ trainLexData.numAttributes());
-		System.out.println("Lex Corpus Instances,"+ trainLexData.numInstances());
-
-		System.out.println("Lexicon Model results");
-		wlf.evaluateDataSet(trainLexData, "testTweets/6HumanPosNeg.arff", lexFilt);
-		wlf.evaluateDataSet(trainLexData, "testTweets/SandersPosNeg.arff", lexFilt);
-		wlf.evaluateDataSet(trainLexData, "testTweets/SemEvalPosNeg.arff", lexFilt);
-		
-		
-		lexFilt=new LexiconDistSuper();		
-//		// Non mutually exclusive false			
-		lexFilt.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O"));
-
-		lexFilt.setBalance(true);
-		
-		System.out.println("\n\n Lexicon Balanced");
-		lexFilt.setInputFormat(sourceData);
-		trainLexData=Filter.useFilter(sourceData, lexFilt);
-		trainLexData.setClassIndex(trainLexData.numAttributes()-1);
-
-
-
-		System.out.println(lexFilt.getUsefulInfo());
-		System.out.println("Lex Corpus Attributes,"+ trainLexData.numAttributes());
-		System.out.println("Lex Corpus Instances,"+ trainLexData.numInstances());
-
-		System.out.println("Lexicon Model results");
-		wlf.evaluateDataSet(trainLexData, "testTweets/6HumanPosNeg.arff", lexFilt);
-		wlf.evaluateDataSet(trainLexData, "testTweets/SandersPosNeg.arff", lexFilt);
-		wlf.evaluateDataSet(trainLexData, "testTweets/SemEvalPosNeg.arff", lexFilt);
-		
+//		LexiconDistSuper lexFilt=new LexiconDistSuper();		
+////		// Non mutually exclusive false			
+//		lexFilt.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O"));
+//
+//		lexFilt.setBalance(false);
+//		
+//		System.out.println("Lexicon UnBalanced");
+//		lexFilt.setInputFormat(sourceData);
+//		Instances trainLexData=Filter.useFilter(sourceData, lexFilt);
+//		trainLexData.setClassIndex(trainLexData.numAttributes()-1);
+//
+//
+//
+//		System.out.println(lexFilt.getUsefulInfo());
+//		System.out.println("Lex Corpus Attributes,"+ trainLexData.numAttributes());
+//		System.out.println("Lex Corpus Instances,"+ trainLexData.numInstances());
+//
+//		System.out.println("Lexicon Model results");
+//		wlf.evaluateDataSet(trainLexData, "testTweets/6HumanPosNeg.arff", lexFilt);
+//		wlf.evaluateDataSet(trainLexData, "testTweets/SandersPosNeg.arff", lexFilt);
+//		wlf.evaluateDataSet(trainLexData, "testTweets/SemEvalPosNeg.arff", lexFilt);
+//		
+//		
+//		lexFilt=new LexiconDistSuper();		
+////		// Non mutually exclusive false			
+//		lexFilt.setOptions(Utils.splitOptions("-M 10 -N 10 -W -C -I 3 -P WORD- -Q CLUST- -L -J lexicons/AFINN-posneg.txt -H resources/50mpaths2.txt -T resources/stopwords.txt -O"));
+//
+//		lexFilt.setBalance(true);
+//		
+//		System.out.println("\n\n Lexicon Balanced");
+//		lexFilt.setInputFormat(sourceData);
+//		trainLexData=Filter.useFilter(sourceData, lexFilt);
+//		trainLexData.setClassIndex(trainLexData.numAttributes()-1);
+//
+//
+//
+//		System.out.println(lexFilt.getUsefulInfo());
+//		System.out.println("Lex Corpus Attributes,"+ trainLexData.numAttributes());
+//		System.out.println("Lex Corpus Instances,"+ trainLexData.numInstances());
+//
+//		System.out.println("Lexicon Model results");
+//		wlf.evaluateDataSet(trainLexData, "testTweets/6HumanPosNeg.arff", lexFilt);
+//		wlf.evaluateDataSet(trainLexData, "testTweets/SandersPosNeg.arff", lexFilt);
+//		wlf.evaluateDataSet(trainLexData, "testTweets/SemEvalPosNeg.arff", lexFilt);
+//		
 		
 
 

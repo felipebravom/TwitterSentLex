@@ -69,7 +69,6 @@ public class ASA extends DistantSupervisionFilter {
 	/** the minimum number of documents for an attribute to be considered. */
 	protected int minAttDocs=0; 
 
-
 	/** the minimum number of documents for a word to be included. */
 	protected int minInstDocs=0; 
 
@@ -316,7 +315,6 @@ public class ASA extends DistantSupervisionFilter {
 
 		if(this.isExclusiveSets())
 			result.add("-E");
-
 
 
 
